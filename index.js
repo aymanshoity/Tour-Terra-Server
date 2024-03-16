@@ -29,8 +29,12 @@ async function run() {
 
         const packageCollections = client.db("Tour-Terra").collection("packages");
         const bookingCollections = client.db("Tour-Terra").collection("tourBookings");
+        const whistleCollections = client.db("Tour-Terra").collection("whistle");
+        const tourGuidesCollections = client.db("Tour-Terra").collection("tourGuides");
 
 
+
+        // package related API
         app.get('/packages',async(req,res)=>{
             const cursor= await packageCollections.find().toArray()
             res.send(cursor)
@@ -41,10 +45,51 @@ async function run() {
             const cursor= await packageCollections.findOne(query)
             res.send(cursor)
         })
+        // TourGuide Section
+        app.get('/tourGuides',async(req,res)=>{
+            const cursor=await tourGuidesCollections.find().toArray()
+            res.send(cursor)
+        })
+        app.get('/tourGuides/:id',async(req,res)=>{
+            const id=req.params.id;
+            const query={_id:new ObjectId(id)}
+            const cursor=await tourGuidesCollections.findOne(query)
+            res.send(cursor)
+        })
+        // tour Booking related API
         app.post('/tourBookings',async(req,res)=>{
             const tour=req.body;
             const booking= await bookingCollections.insertOne(tour)
             res.send(booking)
+        })
+        app.get('/tourBookings',async(req,res)=>{
+            const cursor=await bookingCollections.find().toArray()
+            res.send(cursor)
+        })
+        app.get('/tourBookings/:email',async(req,res)=>{
+            const email=req.params.email;
+            const query={email:email}
+            const cursor=await bookingCollections.find(query).toArray()
+            res.send(cursor)
+        })
+        // whistle related API
+
+        app.post('/whistle',async(req,res)=>{
+            const package=req.body;
+            const query={tourId:package.tourId}
+            const existingTour=await whistleCollections.findOne(query)
+            if(existingTour){
+                return res.send({message:'Tour Already Added',insertedId:null})
+            }
+            const result=await whistleCollections.insertOne(package)
+            res.send(result)
+        })
+
+        app.get('/whistle/:email',async(req,res)=>{
+            const email=req.params.email;
+            const query={email: email}
+            const result=await whistleCollections.find(query).toArray()
+            res.send(result)
         })
 
         // Send a ping to confirm a successful connection
